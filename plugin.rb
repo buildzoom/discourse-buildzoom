@@ -29,7 +29,6 @@ after_initialize do
 
       if permalink.nil? && !request.path.match('answers/').nil?
         topic_id = request.path.split('/')[2]
-            Rails.logger.info "topic_id: #{topic_id}"
         permalink = Permalink.where("url like ?", "%/#{topic_id}/%").first
       end
       raise Discourse::NotFound unless permalink
