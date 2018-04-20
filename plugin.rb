@@ -14,9 +14,38 @@ after_initialize do
     end
   end
 
-  require_dependency 'email/sender'
+  require_dependency 'permalink_constraint'
+  class ::PermalinkConstraint
+    def matches?(request)
+      true
+    end
+  end
 
-	class Email::Sender
+  require_dependency 'permalinks_controller'
+  class ::PermalinksController < ApplicationController
+    def show
+      url = request.path
+      permalink = Permalink.find_by_url(url)
+
+      if permalink.nil? && !request.path.match('answers/').nil?
+        topic_id = request.path.split('/')[2]
+            Rails.logger.info "topic_id: #{topic_id}"
+        permalink = Permalink.where("url like ?", "%/#{topic_id}/%").first
+      end
+      raise Discourse::NotFound unless permalink
+
+      if permalink.external_url
+        redirect_to permalink.external_url, status: :moved_permanently
+      elsif permalink.target_url
+        redirect_to permalink.target_url, status: :moved_permanently
+      else
+        raise Discourse::NotFound
+      end
+    end
+  end
+
+  require_dependency 'email/sender'
+  class Email::Sender
 		def send
       return if SiteSetting.disable_emails && @email_type.to_s != "admin_login"
 
