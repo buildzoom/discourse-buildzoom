@@ -44,17 +44,17 @@ after_initialize do
   end
 
   require_dependency 'email/sender'
-  class ::Email::Sender
-  	module DiscourseBuildzoomSend
-  		def send
-	      # set header for ESP analytics
-	      case ActionMailer::Base.smtp_settings[:address]
-	      when "smtp.mailgun.org"
-	        @message.header['X-Mailgun-Tag'] = @email_type
-	      end
-  			super
-  		end
-  	end
-  	prepend DiscourseBuildzoomSend
+	class ::Email::Sender
+		module DiscourseBuildzoomSend
+			def send
+				# set header for ESP analytics
+				case ActionMailer::Base.smtp_settings[:address]
+				when "smtp.mailgun.org"
+					@message.header['X-Mailgun-Tag'] = @email_type.to_s
+				end
+				super
+			end
+		end
+		prepend DiscourseBuildzoomSend
 	end
 end
